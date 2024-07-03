@@ -1,16 +1,4 @@
 steps:
   - name: docker/compose:latest
-    entrypoint: ['docker-compose']
+    id: BUILD
     args: ['build']
-
-  - name: gcr.io/cloud-builders/docker
-    args: ['tag', 'backend:latest', 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA']
-
-  - name: gcr.io/cloud-builders/docker
-    args: ['push', 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA']
-
-images:
-  - 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA'
-
-substitutions:
-  COMMIT_SHA: abcdef123456
