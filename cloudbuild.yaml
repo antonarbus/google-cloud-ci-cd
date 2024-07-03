@@ -3,10 +3,10 @@
 # CloudBuild Pipeline for Prod CloudRun
 #-----------------------------------------
 steps:
-  # Docker Build Image
-  - name: gcr.io/cloud-builders/docker
+  - name: docker/compose:latest
     id: BUILD
-    args: ['build', '-t', '$_SERVICE_IMAGE', '.', '-f', 'Dockerfile']
+    entrypoint: ['docker-compose']
+    args: ['build']
 
   # Docker Push Image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
@@ -24,6 +24,9 @@ steps:
       - --project=$_SERVICE_PROJECT
       - --region=$_SERVICE_REGION
       - --image=$_SERVICE_IMAGE
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
 
 images: # Display the image in the build results - Build Artifacts
   - $_SERVICE_IMAGE
