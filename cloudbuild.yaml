@@ -1,24 +1,84 @@
 steps:
+  # Step 1: Build the images using docker-compose
   - name: docker/compose:latest
     id: BUILD
+    entrypoint: ['docker-compose']
     args: ['build']
 
+  # Step 2: Tag the backend image
   - name: gcr.io/cloud-builders/docker
-    id: PUSH
+    id: TAG_BACKEND
+    args:
+      [
+        'tag',
+        'backend:latest',
+        'northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/backend:${SHORT_SHA}',
+      ]
+
+  # Step 3: Push the backend image to Artifact Registry
+  - name: gcr.io/cloud-builders/docker
+    id: PUSH_BACKEND
     args:
       [
         'push',
-        'your-image-name:latest',
-        'us-central1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/${_DOCKER_IMAGENAME}:${SHORT_SHA}',
+        'northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/backend:${SHORT_SHA}',
       ]
+
+  # Step 4: Tag the frontend image
+  - name: gcr.io/cloud-builders/docker
+    id: TAG_FRONTEND
+    args:
+      [
+        'tag',
+        'frontend:latest',
+        'northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/frontend:${SHORT_SHA}',
+      ]
+
+  # Step 5: Push the frontend image to Artifact Registry
+  - name: gcr.io/cloud-builders/docker
+    id: PUSH_FRONTEND
+    args:
+      [
+        'push',
+        'northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/frontend:${SHORT_SHA}',
+      ]
+
+  # Step 6: Deploy the backend image to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    id: DEPLOY_BACKEND
+    args:
+      - run
+      - services
+      - update
+      - ${_BACKEND_SERVICE_NAME}
+      - --project=${_SERVICE_PROJECT}
+      - --region=${_SERVICE_REGION}
+      - --image=northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/backend:${SHORT_SHA}
+      - --platform=managed
+
+  # Step 7: Deploy the frontend image to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    id: DEPLOY_FRONTEND
+    args:
+      - run
+      - services
+      - update
+      - ${_FRONTEND_SERVICE_NAME}
+      - --project=${_SERVICE_PROJECT}
+      - --region=${_SERVICE_REGION}
+      - --image=northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/frontend:${SHORT_SHA}
+      - --platform=managed
 
 options:
   logging: 'CLOUD_LOGGING_ONLY'
 
+images:
+  - northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/backend:${SHORT_SHA}
+  - northamerica-northeast1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/frontend:${SHORT_SHA}
+
 substitutions:
-  _SERVICE_REGION: us-central1
+  _SERVICE_REGION: northamerica-northeast1
   _SERVICE_PROJECT: astahov-prod
-  _SERVICE_NAME: my-docker-app-prod
-  _DOCKER_REGISTRY: docker-repo
-  _DOCKER_IMAGENAME: myapp-prod
-  _SERVICE_IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/${_DOCKER_IMAGENAME}:${SHORT_SHA}
+  _BACKEND_SERVICE_NAME: backend-service
+  _FRONTEND_SERVICE_NAME: frontend-service
+  _DOCKER_REGISTRY: astahov-docker-repo
