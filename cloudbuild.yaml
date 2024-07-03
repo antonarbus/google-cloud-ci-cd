@@ -2,3 +2,5 @@ steps:
   - name: docker/compose:latest
     id: BUILD
     args: ['build']
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
