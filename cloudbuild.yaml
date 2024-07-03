@@ -2,5 +2,23 @@ steps:
   - name: docker/compose:latest
     id: BUILD
     args: ['build']
+
+  - name: gcr.io/cloud-builders/docker
+    id: PUSH
+    args:
+      [
+        'push',
+        'your-image-name:latest',
+        'us-central1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/${_DOCKER_IMAGENAME}:${SHORT_SHA}',
+      ]
+
 options:
   logging: 'CLOUD_LOGGING_ONLY'
+
+substitutions:
+  _SERVICE_REGION: us-central1
+  _SERVICE_PROJECT: astahov-prod
+  _SERVICE_NAME: my-docker-app-prod
+  _DOCKER_REGISTRY: docker-repo
+  _DOCKER_IMAGENAME: myapp-prod
+  _SERVICE_IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/${_DOCKER_REGISTRY}/${_DOCKER_IMAGENAME}:${SHORT_SHA}
