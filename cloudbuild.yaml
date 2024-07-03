@@ -1,7 +1,3 @@
----
-#-----------------------------------------
-# CloudBuild Pipeline for Prod CloudRun
-#-----------------------------------------
 steps:
   - name: docker/compose:latest
     id: BUILD
