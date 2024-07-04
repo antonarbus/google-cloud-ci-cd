@@ -5,7 +5,7 @@ const root = ReactDOM.createRoot(rootElement)
 
 root.render(
   <>
-    <h1>hello world</h1>
+    <h1>hello world!</h1>
     <button
       style={{ display: 'block', margin: 10 }}
       onClick={async () => {
